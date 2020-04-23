@@ -143,14 +143,17 @@ class stateObject:
             prCyan(rank,self.stack)
 
     def stack_clean_up(self):
-        for element in reversed(self.stack):
-            if element[0] == "FROM":
-                self.stack.remove(element)
-                msg = {"msg_type": "remove_entry", "src": rank}
-                comm.send(msg, dest=element[1])
-                prGreen(str(rank)+ " SENT A CLEANUP MESSAGE TO "+str(element[1]))
-                break
-
+        if not self.stack :
+            # Return if empty stack
+            return
+        top_of_stack = self.stack[-1]
+        if top_of_stack[0] == "FROM":
+            self.stack.remove(top_of_stack)
+            msg = {"msg_type": "remove_entry", "src": rank}
+            comm.send(msg, dest=top_of_stack[1])
+            prGreen(str(rank)+ " SENT A CLEANUP MESSAGE TO "+str(top_of_stack[1]))
+        return
+        
     def check_channels(self):
         answer = True
         for key in self.channels:
