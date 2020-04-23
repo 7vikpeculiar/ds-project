@@ -5,12 +5,27 @@ from enum import Enum
 from random import random
 from collections import deque
 import time
+from pprint import pprint
 
 # https://www.programcreek.com/python/example/89111/mpi4py.MPI.ANY_SOURCE
+
+# TODO MULTIPLE MESSAGES
+# ALL PROCS NEED TO SEND MESSAGES
+# TODO PRINT PRETTY 
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
+def prRed(skk): print("\033[91m {}\033[00m" .format(skk)) #
+
+def prGreen(skk): print("\033[92m {}\033[00m" .format(skk)) # 
+def prYellow(skk): print("\033[93m {}\033[00m" .format(skk)) #
+def prLightPurple(skk): print("\033[94m {}\033[00m" .format(skk)) #
+def prPurple(skk): print("\033[95m {}\033[00m" .format(skk)) #
+def prCyan(ska,skk): print("\033[96m Rank : {} -> {}\033[00m" .format(ska,skk)) # 
+def prLightGray(skk): print("\033[97m {}\033[00m" .format(skk)) #
+def prBlack(skk): print("\033[98m {}\033[00m" .format(skk)) 
+def prBlue(skk): print("\033[94m {}\033[00m" .format(skk)) 
 
 class Channel:
     def __init__(self, them):
@@ -18,6 +33,7 @@ class Channel:
         self.them = them
         self.is_coloured = False
         self.has_terminated = False
+
 
     def color_channel(self):
         self.is_coloured = True
@@ -36,7 +52,7 @@ class stateObject:
         self.children = []
         self.parent = None
         self.status = MPI.Status()
-        self.num_basic_msgs = 1
+        self.num_basic_msgs = 2
         self.stack = deque()
         self.neighbours = None
         self.reqs = None
@@ -60,11 +76,9 @@ class stateObject:
                                                         self.channels, self.children, self.parent, self.num_basic_msgs, str(self.stack)))
 
     def processMsg(self, msg_obj):
-        # print(rank, "Recieved message", msg_obj)
         if msg_obj["msg_type"] == "warn":
             # Color the channel
-            print(rank, "GOT WARNING FROM", msg_obj["src"])
-            # print(rank, self.channels)sent_terminated
+            prPurple(str(rank) + " GOT WARNING FROM " +str(msg_obj["src"]))
             self.channels[msg_obj["src"]].color_channel()
             # print(self.channels)
             if self.warned == False:
@@ -73,17 +87,17 @@ class stateObject:
                 self.warned = True
 
         if msg_obj["msg_type"] == "basic_comp":
-            print("GOT BASIC MSG FROM {}".format(msg_obj["src"]))
+            prRed("{} GOT BASIC MSG FROM {}".format(rank,msg_obj["src"]))
             if self.channels[msg_obj["src"]].is_coloured == True:
                 self.stack.append(["FROM", msg_obj["src"]])
-            print(rank,self.stack)
+            prCyan(rank,self.stack)
 
         if msg_obj["msg_type"] == "remove_entry":
             for element in reversed(self.stack):
-                print("GOT REMOVE ENTRY FROM ", msg_obj["src"])
+                prGreen(str(rank)+" GOT REMOVE STACK ENTRY FROM "+ str(msg_obj["src"]))
                 if element[0] == "TO" and element[1] == msg_obj["src"]:
                     self.stack.remove(element)
-                    print("After removing",self.stack)
+                    prCyan(rank,self.stack)
                     return
 
         if msg_obj["msg_type"] == "terminating":
@@ -95,6 +109,7 @@ class stateObject:
 
     def fill_children(self, neighbours):
         self.neighbours = neighbours
+        print(" Process {} received adjacency list {}".format(rank,neighbours))
         self.children = list(set(neighbours).difference({self.parent}))
         self.channels = {int(proc): Channel(int(proc))
                          for proc in self.neighbours}
@@ -108,9 +123,12 @@ class stateObject:
                 msg = {"msg_type": "basic_comp", "src": rank}
                 dest = self.neighbours[-1]
                 comm.send(msg, dest=dest)
-                print(rank, " Sent message to ", dest)
+                prRed(str(rank) + " SENT BASIC MESSAGE TO " + str(dest))
                 self.stack.append(["TO", dest])
-            self.num_basic_msgs -= 1
+                self.num_basic_msgs -= 1
+                prCyan(rank,self.stack)
+            else:
+                self.num_basic_msgs -= 1
 
     def stack_clean_up(self):
         for element in reversed(self.stack):
@@ -118,6 +136,7 @@ class stateObject:
                 self.stack.remove(element)
                 msg = {"msg_type": "remove_entry", "src": rank}
                 comm.send(msg, dest=element[1])
+                prGreen(str(rank)+ " SENT A CLEANUP MESSAGE TO "+str(element[1]))
                 break
 
     def check_channels(self):
@@ -136,11 +155,11 @@ class stateObject:
             return answer
 
     def send_termination_msg(self):
-        print(rank, "TERMINATE")
+        prLightPurple(str(rank)+ " SENDING TERMINATION  MESSAGE TO PARENT "+str(self.parent))
         self.sent_terminated = True
         msg = {"msg_type": "terminating","src":rank}
         comm.send(msg,dest=self.parent)
-    
+
     def send_overall_termination(self):
         if rank == 0:
             for i in range(1,self.num_nodes):
@@ -149,24 +168,36 @@ class stateObject:
 
 processState = stateObject()
 ################################################################
-
 if rank == 0:
-    num_nodes = int(input("Enter the number of nodes"))
-    processState.num_nodes = num_nodes
-    Edges = num_nodes - 1
-    parent_arr = [-1] * num_nodes
-    # print("Enter the edges:")
-    adj_list = []
-    for i in range(0, num_nodes):
-        adj_list.append([])
+    answer = input("Determinstic (y) or Non Determinstic simulation ? (n) : ")
+    if answer == "y":
+        answer = True
+    else:
+        answer = False
 
-    for i in range(0, Edges):
-        u, v = input().split(' ')
-        u, v = int(u), int(v)
-        parent_arr[v] = u
-        adj_list[u].append(v)
-        adj_list[v].append(u)
+###########
+    if answer:
+        print("Determinstic Simulation starting  ###############")
+    else:
+        print("Non Determinstic Simulation starting ###############")
+    
+if rank == 0:
+    with open('inp','r') as f:
+        num_nodes = int(f.readline().strip())
+        processState.num_nodes = num_nodes
+        Edges = num_nodes - 1
+        parent_arr = [-1] * num_nodes
+        # print("Enter the edges:")
+        adj_list = []
+        for i in range(0, num_nodes):
+            adj_list.append([])
 
+        for i in range(0, Edges):
+            u, v = f.readline().strip().split(' ')
+            u, v = int(u), int(v)
+            parent_arr[v] = u
+            adj_list[u].append(v)
+            adj_list[v].append(u)
     # print(adj_list)
 
     for i in range(1, num_nodes):
@@ -179,9 +210,10 @@ if rank == 0:
 
     processState.children = [int(ele) for ele in np.array(adj_list[0], dtype='d')]
     processState.neighbours = processState.children
-
+    print(" Process {} knows its adjacency list {}".format(rank,processState.neighbours))
     processState.channels = {int(proc): Channel(
         int(proc)) for proc in processState.children}
+
     # print(rank,": Channels:",[ele.them for ele in processState.channels])
     # print(processState.children)
     # print(rank, "Children :", processState.children)
@@ -194,12 +226,15 @@ else:
     processState.parent = int(comm.recv(source=0))
     comm.Recv(neighbours, source=0)
     processState.fill_children([int(ele) for ele in neighbours])
+    process
     # print(rank,": Channels:",[ele.them for ele in processState.channels])
     # print(rank, "Children :", processState.children)
     # print(rank, processState.neighbours)
     # processState.print_state()
+
 # Done sending tree
 
+time.sleep(2)
 
 if rank == 0:
     processState.state = "DT"
@@ -224,16 +259,16 @@ if rank == 0:
                 processState.stack_clean_up()            
                 continue
 
-            print(rank,"HERE")
             if not processState.stack and processState.num_basic_msgs <= 0:
                     # Stack cleaned up 
                     if processState.check_channels() and processState.children_have_terminated():
-                        # processState.send_termination_msg()
                         processState.has_terminated = True
                         processState.send_overall_termination()
-                        print(0,"DONE",processState.has_terminated)
-        
+                        # print(0,"DONE",processState.has_terminated)
+                        
         time.sleep(1)
+    time.sleep(4)
+    prLightGray("Process 0 (Initiator) Terminating")
         
 else:
     # print(rank,": Channels:",[ele.them for ele in processState.channels])
@@ -260,10 +295,7 @@ else:
                 # Stack cleaned up 
                 if processState.check_channels() and processState.children_have_terminated() and not processState.sent_terminated:
                     processState.send_termination_msg()
-
-        # Stack is empty
-            # if not processState.stack and processState.num_basic_msgs <= 0:
-            #     print("STACK IS EMPTY")
-            #     if TrueTrueTrueTrueTrue
-        print(rank, processState.stack)
+        
         time.sleep(1)
+
+    prLightGray("Process {} Terminating".format(rank))
