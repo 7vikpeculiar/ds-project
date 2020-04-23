@@ -178,10 +178,12 @@ class stateObject:
                 msg = {"msg_type":"terminate","src":rank}
                 comm.send(msg,dest=i)
 
+################################################################
 processState = stateObject()
 ################################################################
+
 if rank == 0:
-    answer = input("Determinstic (y) or Non Determinstic simulation ? (n) : ")
+    answer = input("Determinstic (y) or Non Determinstic simulation ? (n) :")
     if answer == "y":
         answer = True
     else:
@@ -189,11 +191,12 @@ if rank == 0:
 
 ###########
     if answer:
-        print("Determinstic Simulation starting  ###############")
+        print("Determinstic Simulation starting  ############### \n")
     else:
-        print("Non Determinstic Simulation starting ###############")
+        print("Non Determinstic Simulation starting ############### \n")
 
     processState.deterministic = answer
+#################################################################
 
 if rank == 0:
     with open('inp','r') as f:
