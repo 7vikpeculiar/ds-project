@@ -1,0 +1,75 @@
+Determinstic (y) or Non Determinstic simulation ? (n) : Determinstic Simulation starting  ###############
+ Process 1 received adjacency list [0, 4, 5]
+ Process 0 knows its adjacency list [1, 2, 3]
+ Process 2 received adjacency list [0]
+ Process 3 received adjacency list [0, 6]
+ Process 4 received adjacency list [1]
+ Process 5 received adjacency list [1]
+ Process 6 received adjacency list [3]
+[95m 1 GOT WARNING FROM 0[00m
+[95m 2 GOT WARNING FROM 0[00m
+[95m 3 GOT WARNING FROM 0[00m
+[94m 2 SENDING TERMINATION  MESSAGE TO PARENT 0[00m
+[95m 5 GOT WARNING FROM 1[00m
+[95m 4 GOT WARNING FROM 1[00m
+[95m 0 GOT WARNING FROM 1[00m
+[95m 6 GOT WARNING FROM 3[00m
+[94m 5 SENDING TERMINATION  MESSAGE TO PARENT 1[00m
+[95m 0 GOT WARNING FROM 2[00m
+[94m 4 SENDING TERMINATION  MESSAGE TO PARENT 1[00m
+[95m 1 GOT WARNING FROM 5[00m
+[94m 6 SENDING TERMINATION  MESSAGE TO PARENT 3[00m
+[95m 3 GOT WARNING FROM 6[00m
+[95m 0 GOT WARNING FROM 3[00m
+[95m 1 GOT WARNING FROM 4[00m
+[91m 3 SENT BASIC MESSAGE TO 6[00m
+[96m Rank : 3 -> deque([['TO', 6]])[00m
+[91m 3 SENT BASIC MESSAGE TO 6[00m
+[96m Rank : 3 -> deque([['TO', 6], ['TO', 6]])[00m
+[91m 6 GOT BASIC MSG FROM 3[00m
+[96m Rank : 6 -> deque([['FROM', 3]])[00m
+[91m 0 SENT BASIC MESSAGE TO 3[00m
+[96m Rank : 0 -> deque([['TO', 3]])[00m
+[91m 3 GOT BASIC MSG FROM 0[00m
+[96m Rank : 3 -> deque([['TO', 6], ['TO', 6], ['FROM', 0]])[00m
+[91m 0 SENT BASIC MESSAGE TO 3[00m
+[96m Rank : 0 -> deque([['TO', 3], ['TO', 3]])[00m
+[92m 6 SENT A CLEANUP MESSAGE TO 3[00m
+[91m 6 GOT BASIC MSG FROM 3[00m
+[96m Rank : 6 -> deque([['FROM', 3]])[00m
+[91m 1 SENT BASIC MESSAGE TO 5[00m
+[96m Rank : 1 -> deque([['TO', 5]])[00m
+[91m 1 SENT BASIC MESSAGE TO 5[00m
+[96m Rank : 1 -> deque([['TO', 5], ['TO', 5]])[00m
+[92m 3 SENT A CLEANUP MESSAGE TO 0[00m
+[92m 3 GOT REMOVE STACK ENTRY FROM 6[00m
+[96m Rank : 3 -> deque([['TO', 6]])[00m
+[92m 0 GOT REMOVE STACK ENTRY FROM 3[00m
+[96m Rank : 0 -> deque([['TO', 3]])[00m
+[92m 6 SENT A CLEANUP MESSAGE TO 3[00m
+[91m 3 GOT BASIC MSG FROM 0[00m
+[96m Rank : 3 -> deque([['TO', 6], ['FROM', 0]])[00m
+[92m 3 SENT A CLEANUP MESSAGE TO 0[00m
+[92m 3 GOT REMOVE STACK ENTRY FROM 6[00m
+[96m Rank : 3 -> deque([])[00m
+[91m 5 GOT BASIC MSG FROM 1[00m
+[96m Rank : 5 -> deque([['FROM', 1]])[00m
+[92m 0 GOT REMOVE STACK ENTRY FROM 3[00m
+[96m Rank : 0 -> deque([])[00m
+[94m 3 SENDING TERMINATION  MESSAGE TO PARENT 0[00m
+[91m 5 GOT BASIC MSG FROM 1[00m
+[96m Rank : 5 -> deque([['FROM', 1], ['FROM', 1]])[00m
+[92m 1 GOT REMOVE STACK ENTRY FROM 5[00m
+[96m Rank : 1 -> deque([['TO', 5]])[00m
+[92m 5 SENT A CLEANUP MESSAGE TO 1[00m
+[92m 5 SENT A CLEANUP MESSAGE TO 1[00m
+[92m 1 GOT REMOVE STACK ENTRY FROM 5[00m
+[96m Rank : 1 -> deque([])[00m
+[94m 1 SENDING TERMINATION  MESSAGE TO PARENT 0[00m
+[97m Process 1 Terminating[00m
+[97m Process 4 Terminating[00m
+[97m Process 3 Terminating[00m
+[97m Process 5 Terminating[00m
+[97m Process 6 Terminating[00m
+[97m Process 2 Terminating[00m
+[97m Process 0 (Initiator) Terminating[00m

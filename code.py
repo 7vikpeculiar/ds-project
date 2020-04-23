@@ -2,16 +2,12 @@ from mpi4py import MPI
 import numpy as np
 import sys
 from enum import Enum
-from random import random
+from random import choice
 from collections import deque
 import time
 from pprint import pprint
 
 # https://www.programcreek.com/python/example/89111/mpi4py.MPI.ANY_SOURCE
-
-# TODO MULTIPLE MESSAGES
-# ALL PROCS NEED TO SEND MESSAGES
-# TODO PRINT PRETTY 
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
@@ -59,6 +55,7 @@ class stateObject:
         self.warned = False
         self.has_terminated = False
         self.sent_terminated = False
+        self.deterministic = True
 
     def fill_channels(self, data):
         self.channels = data
@@ -115,13 +112,17 @@ class stateObject:
                          for proc in self.neighbours}
 
     def send_basic_computation_msg(self):
+        if self.deterministic:
+            self.deterministic_basic_computation()
+        else:
+            self.non_deterministic_basic_computation()
+
+    def deterministic_basic_computation(self):   
         if self.num_basic_msgs > 0:
-            # Always true for now
-            # print(rank,"INREACHED")
             if len(self.neighbours) > 1:
                 # print("REACHED")
                 msg = {"msg_type": "basic_comp", "src": rank}
-                dest = self.neighbours[-1]
+                dest = max(self.neighbours)
                 comm.send(msg, dest=dest)
                 prRed(str(rank) + " SENT BASIC MESSAGE TO " + str(dest))
                 self.stack.append(["TO", dest])
@@ -129,6 +130,17 @@ class stateObject:
                 prCyan(rank,self.stack)
             else:
                 self.num_basic_msgs -= 1
+    
+    def non_deterministic_basic_computation(self):   
+        if self.num_basic_msgs > 0:
+                # print("REACHED")
+            msg = {"msg_type": "basic_comp", "src": rank}
+            dest = choice(self.neighbours)
+            comm.send(msg, dest=dest)
+            prRed(str(rank) + " SENT BASIC MESSAGE TO " + str(dest))
+            self.stack.append(["TO", dest])
+            self.num_basic_msgs -= 1
+            prCyan(rank,self.stack)
 
     def stack_clean_up(self):
         for element in reversed(self.stack):
@@ -180,7 +192,9 @@ if rank == 0:
         print("Determinstic Simulation starting  ###############")
     else:
         print("Non Determinstic Simulation starting ###############")
-    
+
+    processState.deterministic = answer
+
 if rank == 0:
     with open('inp','r') as f:
         num_nodes = int(f.readline().strip())
@@ -207,6 +221,7 @@ if rank == 0:
         comm.send(num_adj, dest=i)
         comm.send(parent_arr[i], dest=i)
         comm.Send(np_list, dest=i)
+        comm.send(processState.deterministic,dest=i)
 
     processState.children = [int(ele) for ele in np.array(adj_list[0], dtype='d')]
     processState.neighbours = processState.children
@@ -226,7 +241,7 @@ else:
     processState.parent = int(comm.recv(source=0))
     comm.Recv(neighbours, source=0)
     processState.fill_children([int(ele) for ele in neighbours])
-    process
+    processState.deterministic = comm.recv(source=0)
     # print(rank,": Channels:",[ele.them for ele in processState.channels])
     # print(rank, "Children :", processState.children)
     # print(rank, processState.neighbours)
